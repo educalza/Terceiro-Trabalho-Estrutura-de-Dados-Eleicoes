@@ -9,9 +9,7 @@ typedef struct chapa{
     char nomePrefeito[NOME];
     int numero;
     int DataDeNascimento[3];
-
     char nomeVice[NOME];
-
     int votacao;
 } Chapa;
 
@@ -20,61 +18,89 @@ typedef struct lista{
     struct lista *prox;
 } Lista;
 
+
 void simulaUrnaVotacao(){
 
     Chapa *C = NULL, *chapaAux;
     Lista *lst = NULL;
 
+    chapaAux = (Chapa*)malloc(sizeof(Chapa));
+    if(chapaAux==NULL) exit(1);
+
     FILE *fp_boletimPrimeiroTurno = fopen("boletim.txt", "w");
     if(fp_boletimPrimeiroTurno == NULL) exit(1);
-    
 
-    int *nEleitores, *nChapas;
-    printf("Numero de eleitores da cidade: ");
-    scanf("%d", &nEleitores);
-    system("pause"); system("cls");
+    int qntChapas, qntEleitores;
+    printf("------------- URNA -------------\n\n\n");
+    printf("| Numero de chapas a ser cadastradas:  ");
+    scanf("%d", &qntChapas); printf("|");
+    printf("\n| Numero de eleitores da cidade: ");
+    scanf("%d", &qntEleitores); printf("|");
+    system("pause");
+    system("cls");
 
-    printf("Numero de Chapas da cidade: ");
-    scanf("%d", &nChapas);
-    system("pause"); system("cls");
+    int i=0;
+    while(i<qntChapas){
+        i++;
+        printf("------------- URNA -------------\n\n\n");
+        printf(" [1] CADASTRAR CHAPA\n [2] SAIR\n");
+        int opcao = 0;
+        scanf("%d", &opcao);
+        switch (opcao){
+        case 1:
+            system("cls");
+            printf("------------- CADASTRO DE CHAPA -------------\n\n\n");
+            printf("Nome Prefeito: ");
+            fflush(stdin);
+            fgets(chapaAux->nomePrefeito, NOME, stdin);
 
+            printf("Numero: ");
+            scanf("%d", &chapaAux->numero);
 
+            printf("\nData de nascimento dia/mes/ano: ");
+            for(int i=0; i<3; i++){
+                scanf("%d", &chapaAux->DataDeNascimento[i]);
+            }
 
-    printf("---------- Cadastro de chapas ----------\n");
-    printf("Sistema de parada = 0\n\n");
-    int count = 0;
-    while(count < nChapas){
-        printf("Prefeito\n");
-
-        printf("Numero: ");
-        scanf("%d", &chapaAux->numero);
-        if(chapaAux->numero == 0){
-            printf("Cadastro de chapa cancelado.\n");
-            exit(0);
+            printf("Nome Vice-Prefeito: ");
+            fflush(stdin);
+            fgets(chapaAux->nomeVice, NOME, stdin);
+            C = cadastrarChapas(chapaAux->nomePrefeito, chapaAux->numero, chapaAux->DataDeNascimento, chapaAux->nomeVice);
+            lst = insereChapaLista(C, lst);
+            system("pause");
+            system("cls");
+            break;
+        
+        case 2:
+            printf("Saindo...\n");
+            system("pause");
+            system("cls");
+            break;
+        default:
+            printf("Digite uma opcao.\n");
+            system("pause");
+            system("cls");
+            break;
         }
-
-        printf("Nome: ");
-        fflush(stdin);
-        fgets(chapaAux->nomePrefeito, NOME, stdin);
-
-        printf("\nData de nascimento dia/mes/ano");
-        for(int i=0; i<3; i++){
-            scanf("%d%%d%d", chapaAux->DataDeNascimento[0], chapaAux->DataDeNascimento[1], chapaAux->DataDeNascimento[2]);
+        if(i<=qntChapas){
+            printf("Limite de chapas alcancado.\n");
+            system("cls");
         }
+    }
+
+    printf("\n");
+    i=1;
+    while(i<=qntEleitores){
+        printf("------------- VOTACAO -------------\n\n\n");
+        printf("Escolha seu candidato.\n\n");
+        imprimeCandidatosLista(lst);
+        int opcao=0;
+        scanf("%d", &opcao);
+        lst = votarCandidatoDaChapa(lst, opcao);
         system("pause");
         system("cls");
-        C = cadastrarChapas(chapaAux->nomePrefeito, chapaAux->numero, chapaAux->DataDeNascimento, chapaAux->nomeVice);
-        lst = insereChapaLista(C, lst);
+        i++;
     }
-    printf("\n-----------------------------------------\n");
-
-    printf("---------- Votacao das Chapas ----------\n");
-    printf("Candidatos... \n\n");
-    imprimeCandidatosLista(lst);
-    printf("\nDigite sua votacao: ");
-    int *votacao;
-    scanf("%d", &votacao);
-
 }
 
 Chapa *cadastrarChapas(char *nomePrefeito, int numero, int *data_nascimento, char *nomeVice){
@@ -104,28 +130,32 @@ Lista *insereChapaLista(Chapa *C, Lista *lst){
 
     novo->C = C;
     novo->prox = lst;
-    fprinf("%s %d\n%s\n\n", novo->C->nomePrefeito, novo->C->numero, novo->C->nomeVice);
     return novo;
 }
 
 
 void imprimeCandidatosLista(Lista* lst){
     for(Lista *p = lst; p != NULL; p = p->prox){
-        printf("Prefeito %s %d\nVice %s\n\n", lst->C->nomePrefeito, lst->C->numero, lst->C->nomeVice);
+        p->C->nomePrefeito[strcspn(p->C->nomePrefeito, "\n")] = '\0';
+        p->C->nomeVice[strcspn(p->C->nomeVice, "\n")] = '\0';
+        printf("Prefeito %s %d\nVice %s\n\n", p->C->nomePrefeito, p->C->numero, p->C->nomeVice);
     }
 }
 
-Lista *votarCandidatoDaChapa(int *votacao, Lista *lst, int *qntChapa){
+Lista *votarCandidatoDaChapa(Lista *lst, int votacao){
 
-    Lista *aux = NULL;
-    for(int i = 0; i<qntChapa; i++){
-        int count = 0;
-        for(Lista *p = lst; p=!NULL; p=p->prox){
-            if(votacao == p->C->numero){
-                aux = p;
-                break;
-            }
+    Lista *p;
+    for(p=lst; p!=NULL; p=p->prox){
+        if(p->C->numero == votacao){
+            p->C->votacao += 1;
+            break;
         }
     }
-    return aux->C->votacao;
+    return p;
+}
+
+void gerarBoletim(Lista *lst, FILE *boletimPrimeiroTurno){
+    for(Lista *p=lst; p!=NULL; p=p->prox){
+        fprintf(boletimPrimeiroTurno, "Prefeito: %s   %d\nVice: %s\nVOTOS: %d", p->C->nomePrefeito, p->C->numero, p->C->nomeVice, p->C->votacao);
+    }
 }
