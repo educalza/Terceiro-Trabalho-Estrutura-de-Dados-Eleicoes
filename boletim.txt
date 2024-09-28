@@ -1,0 +1,10 @@
+Prefeito: juliana  64
+Vice: du
+VOTOS VALIDOS: 2
+
+Prefeito: dudu  12
+Vice: ju
+VOTOS VALIDOS: 1
+
+VOTOS NULOS: 1
+VOTOS BRANCOS: 1
