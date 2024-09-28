@@ -15,8 +15,8 @@ Lista *insereChapaLista(Chapa *C, Lista *lst);
 
 void imprimeCandidatosLista(Lista* lst);
 
-Lista *votarCandidatoDaChapa(Lista *lst, int votacao);
+void votarCandidatoDaChapa(Lista *lst, int votacao, int *votosNulo, int *votosBranco);
 
-void gerarBoletim(Lista *lst, FILE *boletimPrimeiroTurno);
+void gerarBoletim(Lista *lst, FILE *boletimPrimeiroTurno, int votosNulos, int votosBrancos);
 
 #endif // ESTOQUE_H_INCLUDED

@@ -10,7 +10,7 @@ typedef struct chapa{
     int numero;
     int DataDeNascimento[3];
     char nomeVice[NOME];
-    int votacao;
+    int votosValidos;
 } Chapa;
 
 typedef struct lista{
@@ -68,16 +68,14 @@ void simulaUrnaVotacao(){
             C = cadastrarChapas(chapaAux->nomePrefeito, chapaAux->numero, chapaAux->DataDeNascimento, chapaAux->nomeVice);
             lst = insereChapaLista(C, lst);
             system("pause");
-            system("cls");
             break;
-        
         case 2:
             printf("Saindo...\n");
             system("pause");
             system("cls");
             break;
         default:
-            printf("Digite uma opcao.\n");
+            printf("Digite uma opcao valida.\n");
             system("pause");
             system("cls");
             break;
@@ -90,17 +88,20 @@ void simulaUrnaVotacao(){
 
     printf("\n");
     i=1;
+    int votosNulo = 0, votosBranco = 0;
     while(i<=qntEleitores){
         printf("------------- VOTACAO -------------\n\n\n");
         printf("Escolha seu candidato.\n\n");
         imprimeCandidatosLista(lst);
         int opcao=0;
         scanf("%d", &opcao);
-        lst = votarCandidatoDaChapa(lst, opcao);
+        votarCandidatoDaChapa(lst, opcao, &votosNulo, &votosBranco);
         system("pause");
         system("cls");
         i++;
     }
+
+    gerarBoletim(lst, fp_boletimPrimeiroTurno, votosNulo, votosBranco);
 }
 
 Chapa *cadastrarChapas(char *nomePrefeito, int numero, int *data_nascimento, char *nomeVice){
@@ -118,7 +119,7 @@ Chapa *cadastrarChapas(char *nomePrefeito, int numero, int *data_nascimento, cha
     strncpy(novo->nomeVice, nomeVice, NOME - 1);
     novo->nomeVice[NOME - 1] = '\0';
 
-    novo->votacao = 0;
+    novo->votosValidos = 0;
 
     return novo;
 }
@@ -137,25 +138,35 @@ Lista *insereChapaLista(Chapa *C, Lista *lst){
 void imprimeCandidatosLista(Lista* lst){
     for(Lista *p = lst; p != NULL; p = p->prox){
         p->C->nomePrefeito[strcspn(p->C->nomePrefeito, "\n")] = '\0';
-        p->C->nomeVice[strcspn(p->C->nomeVice, "\n")] = '\0';
+        p->C->nomeVice[strcspn(p->C->nomeVice, "\n")]='\0';
         printf("Prefeito %s %d\nVice %s\n\n", p->C->nomePrefeito, p->C->numero, p->C->nomeVice);
     }
 }
 
-Lista *votarCandidatoDaChapa(Lista *lst, int votacao){
+void votarCandidatoDaChapa(Lista *lst, int votacao, int *votosNulo, int *votosBranco){
 
-    Lista *p;
-    for(p=lst; p!=NULL; p=p->prox){
-        if(p->C->numero == votacao){
-            p->C->votacao += 1;
-            break;
+    if(votacao == 0){
+        (*votosNulo)++;
+    }
+    else{
+        Lista *p;
+        for(p=lst; p!=NULL; p=p->prox){
+            if(p->C->numero == votacao){
+                p->C->votosValidos += 1;
+                break;
+            }
+        }
+        if(p == NULL){
+            (*votosBranco)++;
         }
     }
-    return p;
 }
 
-void gerarBoletim(Lista *lst, FILE *boletimPrimeiroTurno){
+void gerarBoletim(Lista *lst, FILE *boletimPrimeiroTurno, int votosNulos, int votosBrancos){
     for(Lista *p=lst; p!=NULL; p=p->prox){
-        fprintf(boletimPrimeiroTurno, "Prefeito: %s   %d\nVice: %s\nVOTOS: %d", p->C->nomePrefeito, p->C->numero, p->C->nomeVice, p->C->votacao);
+        p->C->nomePrefeito[strcspn(p->C->nomePrefeito, "\n")] = '\0';
+        p->C->nomeVice[strcspn(p->C->nomeVice,"\n")]='\0';
+        fprintf(boletimPrimeiroTurno, "Prefeito: %s  %d\nVice: %s\nVOTOS VALIDOS: %d\n\n", p->C->nomePrefeito, p->C->numero, p->C->nomeVice, p->C->votosValidos);
     }
+    fprintf(boletimPrimeiroTurno, "VOTOS NULOS: %d\nVOTOS BRANCOS: %d\n", votosNulos, votosBrancos);
 }
