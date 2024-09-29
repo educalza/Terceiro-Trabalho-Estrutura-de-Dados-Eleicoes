@@ -88,20 +88,20 @@ void simulaUrnaVotacao(){
 
     printf("\n");
     i=1;
-    int votosNulo = 0, votosBranco = 0;
+    int votosNulo = 0, votosBranco = 0, votosValidos = 0;
     while(i<=qntEleitores){
         printf("------------- VOTACAO -------------\n\n\n");
         printf("Escolha seu candidato.\n\n");
         imprimeCandidatosLista(lst);
         int opcao=0;
         scanf("%d", &opcao);
-        votarCandidatoDaChapa(lst, opcao, &votosNulo, &votosBranco);
+        votarCandidatoDaChapa(lst, opcao, &votosNulo, &votosBranco, &votosValidos);
         system("pause");
         system("cls");
         i++;
     }
 
-    gerarBoletim(lst, fp_boletimPrimeiroTurno, votosNulo, votosBranco);
+    gerarBoletim(lst, fp_boletimPrimeiroTurno, votosNulo, votosBranco, votosValidos, qntEleitores);
 }
 
 Chapa *cadastrarChapas(char *nomePrefeito, int numero, int *data_nascimento, char *nomeVice){
@@ -143,7 +143,7 @@ void imprimeCandidatosLista(Lista* lst){
     }
 }
 
-void votarCandidatoDaChapa(Lista *lst, int votacao, int *votosNulo, int *votosBranco){
+void votarCandidatoDaChapa(Lista *lst, int votacao, int *votosNulo, int *votosBranco, int *votosValidos){
 
     if(votacao == 0){
         (*votosNulo)++;
@@ -153,6 +153,10 @@ void votarCandidatoDaChapa(Lista *lst, int votacao, int *votosNulo, int *votosBr
         for(p=lst; p!=NULL; p=p->prox){
             if(p->C->numero == votacao){
                 p->C->votosValidos += 1;
+                (*votosValidos)++;
+                p->C->nomePrefeito[strcspn(p->C->nomePrefeito, "\n")] = '\0';
+                p->C->nomeVice[strcspn(p->C->nomeVice, "\n")] = '\0';
+                printf("Voce votou no prefeito %s, com vice %s!!\n\n", p->C->nomePrefeito, p->C->nomeVice);
                 break;
             }
         }
@@ -162,11 +166,42 @@ void votarCandidatoDaChapa(Lista *lst, int votacao, int *votosNulo, int *votosBr
     }
 }
 
-void gerarBoletim(Lista *lst, FILE *boletimPrimeiroTurno, int votosNulos, int votosBrancos){
+void gerarBoletim(Lista *lst, FILE *boletimPrimeiroTurno, int votosNulos, int votosBrancos, int votosValidos, int qntEleitores){
     for(Lista *p=lst; p!=NULL; p=p->prox){
         p->C->nomePrefeito[strcspn(p->C->nomePrefeito, "\n")] = '\0';
         p->C->nomeVice[strcspn(p->C->nomeVice,"\n")]='\0';
-        fprintf(boletimPrimeiroTurno, "Prefeito: %s  %d\nVice: %s\nVOTOS VALIDOS: %d\n\n", p->C->nomePrefeito, p->C->numero, p->C->nomeVice, p->C->votosValidos);
+        float porcentagemVotosCadaChapa;
+        porcentagemVotosCadaChapa = (p->C->votosValidos*100)/qntEleitores;
+        fprintf(boletimPrimeiroTurno, "Prefeito: %s  %d\nVice: %s\nVOTOS: %d\nPORCENTAGEM DE VOTOS: %.2f\n\n", p->C->nomePrefeito, p->C->numero, p->C->nomeVice, p->C->votosValidos, porcentagemVotosCadaChapa);
     }
-    fprintf(boletimPrimeiroTurno, "VOTOS NULOS: %d\nVOTOS BRANCOS: %d\n", votosNulos, votosBrancos);
+    int votosTotais = votosBrancos+votosNulos+votosValidos;
+    fprintf(boletimPrimeiroTurno, "VOTOS NULOS: %d\nVOTOS BRANCOS: %d\nVOTOS VALIDOS: %d\nVOTOS TOTAIS: %d\n\n", votosNulos, votosBrancos, votosValidos, votosTotais);
+    
+    float porcentagemVotosValidos = (votosValidos*100)/votosTotais;
+    float porcentagemVotosNulos = (votosNulos*100)/votosTotais;
+    float porcentagemVotosBrancos = (votosBrancos*100)/votosTotais;
+    fprintf(boletimPrimeiroTurno, "PORCENTAGEM VOTOS VALIDOS: %.2f\nPORCENTAGEM VOTOS NULOS: %.2f\nPORCENTAGEM VOTOS BRANCOS: %.2f\n\n", porcentagemVotosValidos, porcentagemVotosNulos, porcentagemVotosBrancos);
+    
+    if(qntEleitores>10){
+        int candidatoAcimaDe50mais1 = 0;
+        for(Lista *p=lst; p!=NULL; p=p->prox){
+            if(p->C->votosValidos >= (votosValidos/2)){
+                candidatoAcimaDe50mais1 = 1;
+                fprintf(boletimPrimeiroTurno, "\nSEM SEGUNDO TURNO\n");
+                p->C->nomePrefeito[strcspn(p->C->nomePrefeito, "\n")] = '\0';
+                p->C->nomeVice[strcspn(p->C->nomeVice, "\n")] = '\0';
+                Lista *aux = p;
+                for(Lista *p = lst; p!=NULL; p=p->prox){
+                    if(aux->C->votosValidos < p->C->votosValidos){
+                        aux = p;
+                    }
+                }
+                fprintf(boletimPrimeiroTurno, "\nPrefeito %s com Vice %s Eleito a prefeito da cidade!!\n\n", aux->C->nomePrefeito, aux->C->nomeVice);
+            }
+            if(!candidatoAcimaDe50mais1){
+                fprintf(boletimPrimeiroTurno, "\nSEGUNDO TURNO NECESSARIO.\n");
+            }
+            
+        }
+    }
 }
