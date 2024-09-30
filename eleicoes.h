@@ -17,6 +17,10 @@ void imprimeCandidatosLista(Lista* lst);
 
 void votarCandidatoDaChapa(Lista *lst, int votacao, int *votosNulo, int *votosBranco, int *votosValidos);
 
-void gerarBoletim(Lista *lst, FILE *boletimPrimeiroTurno, int votosNulos, int votosBrancos, int votosValidos, int qntEleitores);
+int gerarBoletim(Lista *lst, FILE *boletimPrimeiroTurno, int votosNulos, int votosBrancos, int votosValidos, int qntEleitores);
+
+void limparListaSegundoTurno(Lista **lst);
+
+void liberarLista(Lista *lst);
 
 #endif // ESTOQUE_H_INCLUDED

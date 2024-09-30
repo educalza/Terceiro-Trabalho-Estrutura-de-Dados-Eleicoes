@@ -27,8 +27,10 @@ void simulaUrnaVotacao(){
     chapaAux = (Chapa*)malloc(sizeof(Chapa));
     if(chapaAux==NULL) exit(1);
 
-    FILE *fp_boletimPrimeiroTurno = fopen("boletim.txt", "w");
+    FILE *fp_boletimPrimeiroTurno = fopen("boletimPrimeiroTurno.txt", "w");
+    FILE *fp_boletimSegundoTurno = fopen("boletimSegundoTurno.txt", "w");
     if(fp_boletimPrimeiroTurno == NULL) exit(1);
+    if(fp_boletimSegundoTurno == NULL) exit(1);
 
     int qntChapas, qntEleitores;
     printf("------------- URNA -------------\n\n\n");
@@ -101,7 +103,37 @@ void simulaUrnaVotacao(){
         i++;
     }
 
-    gerarBoletim(lst, fp_boletimPrimeiroTurno, votosNulo, votosBranco, votosValidos, qntEleitores);
+    int segundoTurno;
+    segundoTurno = gerarBoletim(lst, fp_boletimPrimeiroTurno, votosNulo, votosBranco, votosValidos, qntEleitores);
+
+
+    system("pause"); system("cls");
+    printf("Segundo turno iniciando...\n");
+    system("pause"); system("cls");
+    limparListaSegundoTurno(&lst);
+    if(segundoTurno){
+        i=1;
+        int votosNulo = 0, votosBranco = 0, votosValidos = 0;
+        while(i<=qntEleitores){
+            printf("------------- VOTACAO -------------\n\n\n");
+            printf("Escolha seu candidato.\n\n");
+            imprimeCandidatosLista(lst);
+            int opcao=0;
+            scanf("%d", &opcao);
+            votarCandidatoDaChapa(lst, opcao, &votosNulo, &votosBranco, &votosValidos);
+            system("pause");
+            system("cls");
+            i++;
+        }
+    }
+
+    int boletimSegundoTurno;
+    boletimSegundoTurno = gerarBoletim(lst, fp_boletimSegundoTurno, votosNulo, votosBranco, votosValidos, qntEleitores);
+
+    fclose(fp_boletimPrimeiroTurno);
+    fclose(fp_boletimSegundoTurno);
+    free(chapaAux);
+    liberarLista(lst);
 }
 
 Chapa *cadastrarChapas(char *nomePrefeito, int numero, int *data_nascimento, char *nomeVice){
@@ -166,12 +198,12 @@ void votarCandidatoDaChapa(Lista *lst, int votacao, int *votosNulo, int *votosBr
     }
 }
 
-void gerarBoletim(Lista *lst, FILE *boletimPrimeiroTurno, int votosNulos, int votosBrancos, int votosValidos, int qntEleitores){
+int gerarBoletim(Lista *lst, FILE *boletimPrimeiroTurno, int votosNulos, int votosBrancos, int votosValidos, int qntEleitores){
     for(Lista *p=lst; p!=NULL; p=p->prox){
         p->C->nomePrefeito[strcspn(p->C->nomePrefeito, "\n")] = '\0';
         p->C->nomeVice[strcspn(p->C->nomeVice,"\n")]='\0';
         float porcentagemVotosCadaChapa;
-        porcentagemVotosCadaChapa = (p->C->votosValidos*100)/qntEleitores;
+        porcentagemVotosCadaChapa = (p->C->votosValidos*100)/votosValidos;
         fprintf(boletimPrimeiroTurno, "Prefeito: %s  %d\nVice: %s\nVOTOS: %d\nPORCENTAGEM DE VOTOS: %.2f\n\n", p->C->nomePrefeito, p->C->numero, p->C->nomeVice, p->C->votosValidos, porcentagemVotosCadaChapa);
     }
     int votosTotais = votosBrancos+votosNulos+votosValidos;
@@ -182,26 +214,72 @@ void gerarBoletim(Lista *lst, FILE *boletimPrimeiroTurno, int votosNulos, int vo
     float porcentagemVotosBrancos = (votosBrancos*100)/votosTotais;
     fprintf(boletimPrimeiroTurno, "PORCENTAGEM VOTOS VALIDOS: %.2f\nPORCENTAGEM VOTOS NULOS: %.2f\nPORCENTAGEM VOTOS BRANCOS: %.2f\n\n", porcentagemVotosValidos, porcentagemVotosNulos, porcentagemVotosBrancos);
     
-    if(qntEleitores>10){
-        int candidatoAcimaDe50mais1 = 0;
-        for(Lista *p=lst; p!=NULL; p=p->prox){
-            if(p->C->votosValidos >= (votosValidos/2)){
-                candidatoAcimaDe50mais1 = 1;
-                fprintf(boletimPrimeiroTurno, "\nSEM SEGUNDO TURNO\n");
-                p->C->nomePrefeito[strcspn(p->C->nomePrefeito, "\n")] = '\0';
-                p->C->nomeVice[strcspn(p->C->nomeVice, "\n")] = '\0';
-                Lista *aux = p;
-                for(Lista *p = lst; p!=NULL; p=p->prox){
-                    if(aux->C->votosValidos < p->C->votosValidos){
-                        aux = p;
-                    }
-                }
-                fprintf(boletimPrimeiroTurno, "\nPrefeito %s com Vice %s Eleito a prefeito da cidade!!\n\n", aux->C->nomePrefeito, aux->C->nomeVice);
+    if (votosValidos > 0 && qntEleitores > 10) {
+        Lista *candidatoGanho = NULL;
+        for (Lista *p = lst; p != NULL; p = p->prox) {
+            if (p->C->votosValidos > votosValidos / 2) {
+                candidatoGanho = p;
+                break;
             }
-            if(!candidatoAcimaDe50mais1){
-                fprintf(boletimPrimeiroTurno, "\nSEGUNDO TURNO NECESSARIO.\n");
-            }
-            
         }
+        if(candidatoGanho){
+            fprintf(boletimPrimeiroTurno, "\nSEM SEGUNDO TURNO\n");
+            fprintf(boletimPrimeiroTurno, "Prefeito %s com Vice %s Eleito a prefeito da cidade!!\n\n", candidatoGanho->C->nomePrefeito, candidatoGanho->C->nomeVice);
+            return 0;
+        }else{
+            fprintf(boletimPrimeiroTurno, "\nSEGUNDO TURNO NECESSARIO.\n");
+            Lista *aux = lst->prox;
+            for(Lista *p = lst; p!=NULL; p=p->prox){
+                if(aux->C->votosValidos < p->C->votosValidos){
+                    aux = p;
+                }
+            }
+            return 1;
+        }
+    }
+}
+
+void limparListaSegundoTurno(Lista **lst) {
+    if (*lst == NULL || (*lst)->prox == NULL) {
+        return;
+    }
+
+    Lista *primeiro = NULL, *segundo = NULL;
+
+    for (Lista *p = *lst; p != NULL; p = p->prox) {
+        if (primeiro == NULL || p->C->votosValidos > primeiro->C->votosValidos) {
+            segundo = primeiro;
+            primeiro = p;
+        } else if (segundo == NULL || p->C->votosValidos > segundo->C->votosValidos) {
+            segundo = p;
+        }
+    }
+
+    Lista *ant = NULL, *p = *lst;
+    while (p != NULL) {
+        Lista *prox = p->prox;
+        if (p != primeiro && p != segundo) {
+            if (ant == NULL) {
+                *lst = prox;
+            } else {
+                ant->prox = prox;
+            }
+            free(p->C);
+            free(p);
+        } else {
+            ant = p;
+        }
+        p = prox;
+    }
+}
+
+
+void liberarLista(Lista *lst){
+    Lista *p = lst, *aux = NULL;
+    while(p!=NULL){
+        aux = p->prox;
+        free(p->C);
+        free(p);
+        p = aux;
     }
 }
