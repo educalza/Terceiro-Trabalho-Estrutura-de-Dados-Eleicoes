@@ -7,19 +7,21 @@ typedef struct chapa Chapa;
 
 typedef struct lista Lista;
 
+typedef struct votos Votos;
+
 void simulaUrnaVotacao();
 
 Chapa *cadastrarChapas(char *nomePrefeito, int numero, int *data_nascimento, char *nomeVice);
 
 Lista *insereChapaLista(Chapa *C, Lista *lst);
 
-void imprimeCandidatosLista(Lista* lst);
+void imprimeCandidatosLista(Lista *lst);
 
-void votarCandidatoDaChapa(Lista *lst, int votacao, int *votosNulo, int *votosBranco, int *votosValidos);
+void contarVotos(Lista *lst, int votacao, Votos *v);
 
-int gerarBoletim(Lista *lst, FILE *boletimPrimeiroTurno, int votosNulos, int votosBrancos, int votosValidos, int qntEleitores);
+void gerarBoletim(Lista *lst, FILE *boletimPrimeiroTurno, Votos *v, int qntEleitores);
 
-void limparListaSegundoTurno(Lista **lst);
+void *limparListaSegundoTurno(Lista *lst);
 
 void liberarLista(Lista *lst);
 
