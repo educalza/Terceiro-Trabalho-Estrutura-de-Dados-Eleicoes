@@ -21,7 +21,9 @@ void contarVotos(Lista *lst, int votacao, Votos *v);
 
 void gerarBoletim(Lista *lst, FILE *boletimPrimeiroTurno, Votos *v, int qntEleitores);
 
-void *limparListaSegundoTurno(Lista *lst);
+Lista *limparListaSegundoTurno(Lista *lst);
+
+void votarEmChapa(Lista *lst, int qntEleitores);
 
 void liberarLista(Lista *lst);
 

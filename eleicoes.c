@@ -80,6 +80,7 @@ void simulaUrnaVotacao(){
             printf("Digite uma opcao valida.\n");
             system("pause");
             system("cls");
+            i--;
             break;
         }
         if(i<=qntChapas){
@@ -90,7 +91,7 @@ void simulaUrnaVotacao(){
 
     printf("\n");
 
-    votarEmChapa();
+    votarEmChapa(lst, qntEleitores);
 
     free(chapaAux);
 }
@@ -130,7 +131,12 @@ void votarEmChapa(Lista *lst, int qntEleitores){
     if(fp_boletimSegundoTurno == NULL) exit(1);
 
     Lista *p = lst;
-    Votos *v = NULL;
+    Votos *v = (Votos*) malloc(sizeof(Votos));
+    if(v == NULL) exit(1);
+    v->votosNulo = 0;
+    v->votosBranco = 0;
+    v->votosValidos = 0;
+
     int i=1;
     if(p->prox!=NULL){ // Verifica se há pelo menos 2 candidatos
         while(i<=qntEleitores){
@@ -139,13 +145,14 @@ void votarEmChapa(Lista *lst, int qntEleitores){
             imprimeCandidatosLista(lst);
             int opcao=0;
             scanf("%d", &opcao);
-            contarVotos(lst, opcao, &v);
+            contarVotos(lst, opcao, v);
             system("pause");
             system("cls");
             i++;
         }
-        gerarBoletim(lst, fp_boletimPrimeiroTurno, &v, qntEleitores);
+        gerarBoletim(lst, fp_boletimPrimeiroTurno, v, qntEleitores);
 
+        Lista *listaSegundoTurno = NULL;
         if(qntEleitores>10){
             int turno = 2;
             Lista *candidato1 = NULL;
@@ -165,16 +172,29 @@ void votarEmChapa(Lista *lst, int qntEleitores){
                 printf("Iniciando segundo turno...\n");
                 system("pause"); system("cls");
 
-                Lista *listaSegundoTurno = NULL;
                 listaSegundoTurno = limparListaSegundoTurno(lst);
                 liberarLista(lst);
-            }
-        }
-        fclose(fp_boletimPrimeiroTurno);
-    }
 
-    
-    fclose(fp_boletimSegundoTurno);
+                /*segundo turno*/
+                i=1;
+                while(i<=qntEleitores){
+                    printf("------------- VOTACAO -------------\n\n\n");
+                    printf("Escolha seu candidato.\n\n");
+                    imprimeCandidatosLista(listaSegundoTurno);
+                    int opcao=0;
+                    scanf("%d", &opcao);
+                    contarVotos(listaSegundoTurno, opcao, v);
+                    system("pause");
+                    system("cls");
+                    i++;
+                }
+                gerarBoletim(listaSegundoTurno, fp_boletimSegundoTurno, v, qntEleitores);
+                fclose(fp_boletimSegundoTurno);
+                liberarLista(listaSegundoTurno);
+            }
+            fclose(fp_boletimPrimeiroTurno);
+        }
+    }
 }
 
 void contarVotos(Lista *lst, int votacao, Votos *v){
@@ -200,26 +220,27 @@ void contarVotos(Lista *lst, int votacao, Votos *v){
 }
 
 Lista *limparListaSegundoTurno(Lista *lst){
-    if(lst == NULL || (lst)->prox == NULL){
+    if(lst->prox == NULL){
         return NULL;
     }
 
     Lista *candidato1 = NULL, *candidato2 = NULL;
-
+    
+    // Encontrar os dois candidatos com mais votos
     for(Lista *p = lst; p != NULL; p = p->prox){
-        if (candidato1 == NULL || p->C->votosValidos > candidato1->C->votosValidos){
+        if(candidato1 == NULL || p->C->votosValidos > candidato1->C->votosValidos){
             candidato2 = candidato1;
             candidato1 = p;
-        }else if (candidato2 == NULL || p->C->votosValidos > candidato2->C->votosValidos){
+        } else if(candidato2 == NULL || p->C->votosValidos > candidato2->C->votosValidos){
             candidato2 = p;
         }
     }
-
-    Lista **listaSegundoTurno = NULL;
-    *listaSegundoTurno = insereChapaLista(listaSegundoTurno, candidato2->C);
-    *listaSegundoTurno = insereChapaLista(listaSegundoTurno, candidato1->C);
-
-    return &listaSegundoTurno;
+    // Criar nova lista com os dois candidatos
+    Lista *novoSegundoTurno = NULL;
+    novoSegundoTurno = insereChapaLista(candidato2->C, novoSegundoTurno);
+    novoSegundoTurno = insereChapaLista(candidato1->C, novoSegundoTurno);
+    
+    return novoSegundoTurno;
 }
 
 void gerarBoletim(Lista *lst, FILE *boletimPrimeiroTurno, Votos *v, int qntEleitores){
