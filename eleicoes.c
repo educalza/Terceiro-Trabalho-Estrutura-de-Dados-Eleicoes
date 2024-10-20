@@ -125,8 +125,6 @@ void simulaUrnaVotacao(){
 
 
 
-
-
 Chapa *cadastrarChapas(char *nomePrefeito, int numero, int *data_nascimento, char *nomeVice){
 
     Chapa *novo = (Chapa*)malloc(sizeof(Chapa));
@@ -147,8 +145,6 @@ Chapa *cadastrarChapas(char *nomePrefeito, int numero, int *data_nascimento, cha
 
 
 
-
-
 Lista *insereChapaLista(Chapa *C, Lista *lst){
 
     Lista *novo = (Lista*)malloc(sizeof(Lista));
@@ -157,23 +153,6 @@ Lista *insereChapaLista(Chapa *C, Lista *lst){
     novo->prox = lst;
     return novo;
 }
-
-
-
-
-
-int numeroChapaDuplicado(Lista *lst, int numero){
-    for(Lista *aux = lst; aux != NULL; aux = aux->prox){
-        if(aux->C->numero == numero){
-            return 1; 
-        }
-    }
-    return 0; 
-}
-
-
-
-
 
 
 
@@ -285,11 +264,6 @@ void votarEmChapa(Lista *lst, int qntEleitores){
 
 
 
-
-
-
-
-
 void contarVotos(Lista *lst, int votacao, Votos *v){
     if(votacao == 0){
         v->votosNulo++;
@@ -311,10 +285,6 @@ void contarVotos(Lista *lst, int votacao, Votos *v){
         }
     }
 }
-
-
-
-
 
 
 
@@ -356,10 +326,6 @@ Lista *limparListaSegundoTurno(Lista *lst){
 
 
 
-
-
-
-
 void gerarBoletim(Lista *lst, FILE *boletimPrimeiroTurno, Votos *v, int qntEleitores){
 
     if(lst == NULL) return;
@@ -385,9 +351,6 @@ void gerarBoletim(Lista *lst, FILE *boletimPrimeiroTurno, Votos *v, int qntEleit
 
 
 
-
-
-
 void imprimeCandidatosLista(Lista* lst){
     for(Lista *p = lst; p != NULL; p = p->prox){
         p->C->nomePrefeito[strcspn(p->C->nomePrefeito, "\n")] = '\0';
@@ -395,8 +358,6 @@ void imprimeCandidatosLista(Lista* lst){
         printf("Prefeito %s %d\nVice %s\n\n", p->C->nomePrefeito, p->C->numero, p->C->nomeVice);
     }
 }
-
-
 
 
 
@@ -418,9 +379,6 @@ void candidatoMaisVelho(Chapa *cand1, Chapa *cand2, FILE *fp_boletim){
     fprintf(fp_boletim, "Candidato a prefeito %s com vice %s ganhou a eleicao com %d votos por ser mais velho\n",
             maisVelho->nomePrefeito, maisVelho->nomeVice, maisVelho->votosValidos);
 }
-
-
-
 
 
 

@@ -15,8 +15,6 @@ Chapa *cadastrarChapas(char *nomePrefeito, int numero, int *data_nascimento, cha
 
 Lista *insereChapaLista(Chapa *C, Lista *lst);
 
-int numeroChapaDuplicado(Lista *lst, int numero);
-
 void imprimeCandidatosLista(Lista *lst);
 
 void contarVotos(Lista *lst, int votacao, Votos *v);
