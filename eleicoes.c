@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#define N 99
 #define NOME 50
 
 typedef struct chapa{
@@ -45,7 +44,7 @@ void simulaUrnaVotacao(){
     while(i<qntChapas){
         i++;
         printf("------------- URNA -------------\n\n\n");
-        printf(" [1] CADASTRAR CHAPA\n [2] SAIR\n");
+        printf(" [1] CADASTRAR CHAPA\n [2] CANCELAR INSCRICAO DE UMA CHAPA\n [3] CANCELAR INSCRICOES\n [4] SAIR\n");
         int opcao = 0;
         scanf("%d", &opcao);
         switch (opcao){
@@ -56,26 +55,54 @@ void simulaUrnaVotacao(){
             fflush(stdin);
             fgets(chapaAux->nomePrefeito, NOME, stdin);
 
+            int numeroInvalido = 0;
             printf("Numero: ");
             scanf("%d", &chapaAux->numero);
-
-            printf("\nData de nascimento dia/mes/ano: ");
-            for(int i=0; i<3; i++){
-                scanf("%d", &chapaAux->DataDeNascimento[i]);
+            for(Lista *aux = lst; aux!=NULL; aux=aux->prox){
+                if(aux->C->numero == chapaAux->numero){
+                    printf("Por favor, digite um numero ainda nao utilizado.\n");
+                    numeroInvalido = 1;
+                }
+            }
+            if(chapaAux->numero < 1 || chapaAux->numero > 99){
+                printf("Por favor, digite um numero entre 1 e 99.\n");
+                numeroInvalido = 1;
             }
 
-            printf("Nome Vice-Prefeito: ");
-            fflush(stdin);
-            fgets(chapaAux->nomeVice, NOME, stdin);
-            C = cadastrarChapas(chapaAux->nomePrefeito, chapaAux->numero, chapaAux->DataDeNascimento, chapaAux->nomeVice);
-            lst = insereChapaLista(C, lst);
-            system("pause");
-            break;
+            if(!numeroInvalido){
+                printf("\nData de nascimento dia/mes/ano: ");
+                for(int i=0; i<3; i++){
+                    scanf("%d", &chapaAux->DataDeNascimento[i]);
+                }
+
+                printf("Nome Vice-Prefeito: ");
+                fflush(stdin);
+                fgets(chapaAux->nomeVice, NOME, stdin);
+                C = cadastrarChapas(chapaAux->nomePrefeito, chapaAux->numero, chapaAux->DataDeNascimento, chapaAux->nomeVice);
+                lst = insereChapaLista(C, lst);
+                system("pause");
+                break;
+            } else{
+                i--;
+                system("pause");
+                break;
+            }
         case 2:
-            printf("Saindo...\n");
+            printf("Cancelando uma unica inscricao de chapa\n");
             system("pause");
             system("cls");
             break;
+        case 3:
+            printf("Cancelando inscricao chapas\n");
+            i=qntChapas;
+            system("pause");
+            system("cls");
+            break;
+        case 4:
+            printf("Saindo...\n");
+            system("pause");
+            system("cls");
+            exit(0);
         default:
             printf("Digite uma opcao valida.\n");
             system("pause");
@@ -96,6 +123,10 @@ void simulaUrnaVotacao(){
     free(chapaAux);
 }
 
+
+
+
+
 Chapa *cadastrarChapas(char *nomePrefeito, int numero, int *data_nascimento, char *nomeVice){
 
     Chapa *novo = (Chapa*)malloc(sizeof(Chapa));
@@ -114,6 +145,10 @@ Chapa *cadastrarChapas(char *nomePrefeito, int numero, int *data_nascimento, cha
     return novo;
 }
 
+
+
+
+
 Lista *insereChapaLista(Chapa *C, Lista *lst){
 
     Lista *novo = (Lista*)malloc(sizeof(Lista));
@@ -122,6 +157,25 @@ Lista *insereChapaLista(Chapa *C, Lista *lst){
     novo->prox = lst;
     return novo;
 }
+
+
+
+
+
+int numeroChapaDuplicado(Lista *lst, int numero){
+    for(Lista *aux = lst; aux != NULL; aux = aux->prox){
+        if(aux->C->numero == numero){
+            return 1; 
+        }
+    }
+    return 0; 
+}
+
+
+
+
+
+
 
 void votarEmChapa(Lista *lst, int qntEleitores){
 
@@ -133,9 +187,7 @@ void votarEmChapa(Lista *lst, int qntEleitores){
     Lista *p = lst;
     Votos *v = (Votos*) malloc(sizeof(Votos));
     if(v == NULL) exit(1);
-    v->votosNulo = 0;
-    v->votosBranco = 0;
-    v->votosValidos = 0;
+    v->votosNulo = 0; v->votosBranco = 0; v->votosValidos = 0;
 
     int i=1;
     if(p->prox!=NULL){ // Verifica se há pelo menos 2 candidatos
@@ -152,8 +204,29 @@ void votarEmChapa(Lista *lst, int qntEleitores){
         }
         gerarBoletim(lst, fp_boletimPrimeiroTurno, v, qntEleitores);
 
-        Lista *listaSegundoTurno = NULL;
-        if(qntEleitores>10){
+        if(qntEleitores<10){
+            Lista *candidato1 = NULL, *candidato2 = NULL;
+            for(Lista *p = lst; p != NULL; p = p->prox){
+                if(candidato1 == NULL || p->C->votosValidos > candidato1->C->votosValidos){
+                    candidato2 = candidato1;
+                    candidato1 = p;
+                } else if(candidato2 == NULL || p->C->votosValidos > candidato2->C->votosValidos){
+                    candidato2 = p;
+                }
+            }
+            if(candidato1->C->votosValidos > candidato2->C->votosValidos){
+                fprintf(fp_boletimSegundoTurno, "Candidato a prefeito %s com vice %s ganhou a eleicao com %d votos\n", 
+                candidato1->C->nomePrefeito, candidato1->C->nomeVice, candidato1->C->votosValidos);
+                }
+            else if(candidato1->C->votosValidos < candidato2->C->votosValidos){
+                fprintf(fp_boletimSegundoTurno, "Candidato a prefeito %s com vice %s ganhou a eleicao com %d votos\n", 
+                candidato2->C->nomePrefeito, candidato2->C->nomeVice, candidato2->C->votosValidos);
+                } 
+            else if(candidato1->C->votosValidos == candidato2->C->votosValidos){
+                    candidatoMaisVelho(candidato1->C, candidato2->C, fp_boletimPrimeiroTurno);
+                }
+            }
+
             int turno = 2;
             Lista *candidato1 = NULL;
             for (Lista *p = lst; p != NULL; p = p->prox){
@@ -163,17 +236,18 @@ void votarEmChapa(Lista *lst, int qntEleitores){
                     break;
                 }
             }
-            if(turno == 1){
-                fprintf(fp_boletimPrimeiroTurno, "Candidato a prefeito %s com vice %s ganhou a eleicao com %d votos\n", 
-                candidato1->C->nomePrefeito, candidato1->C->nomeVice, candidato1->C->votosValidos);
-            }
-            else if(turno == 2){
+
+        Lista *listaSegundoTurno = NULL;
+        if(qntEleitores>10){
+            if(turno == 2){
                 fprintf(fp_boletimPrimeiroTurno, "SEGUNDO TURNO NECESSARIO.\n");
                 printf("Iniciando segundo turno...\n");
                 system("pause"); system("cls");
 
                 listaSegundoTurno = limparListaSegundoTurno(lst);
-                liberarLista(lst);
+                Votos *v = (Votos*) malloc(sizeof(Votos));
+                v->votosBranco = 0; v->votosNulo = 0; v->votosValidos = 0;
+
 
                 /*segundo turno*/
                 i=1;
@@ -188,14 +262,33 @@ void votarEmChapa(Lista *lst, int qntEleitores){
                     system("cls");
                     i++;
                 }
+                
                 gerarBoletim(listaSegundoTurno, fp_boletimSegundoTurno, v, qntEleitores);
-                fclose(fp_boletimSegundoTurno);
+                if(listaSegundoTurno->C->votosValidos == listaSegundoTurno->prox->C->votosValidos){
+                    candidatoMaisVelho(listaSegundoTurno->C, listaSegundoTurno->prox->C, fp_boletimSegundoTurno);
+                } else if(listaSegundoTurno->C->votosValidos > listaSegundoTurno->prox->C->votosValidos){
+                    fprintf(fp_boletimSegundoTurno, "Candidato a prefeito %s com vice %s ganhou a eleicao com %d votos\n", 
+                listaSegundoTurno->C->nomePrefeito, listaSegundoTurno->C->nomeVice, listaSegundoTurno->C->votosValidos);
+                } else{
+                    fprintf(fp_boletimSegundoTurno, "Candidato a prefeito %s com vice %s ganhou a eleicao com %d votos\n", 
+                listaSegundoTurno->prox->C->nomePrefeito, listaSegundoTurno->prox->C->nomeVice, listaSegundoTurno->prox->C->votosValidos);
+                }
                 liberarLista(listaSegundoTurno);
             }
-            fclose(fp_boletimPrimeiroTurno);
-        }
+        } 
     }
-}
+
+    liberarLista(lst);
+    fclose(fp_boletimPrimeiroTurno);
+    fclose(fp_boletimSegundoTurno);
+    }
+
+
+
+
+
+
+
 
 void contarVotos(Lista *lst, int votacao, Votos *v){
     if(votacao == 0){
@@ -219,6 +312,12 @@ void contarVotos(Lista *lst, int votacao, Votos *v){
     }
 }
 
+
+
+
+
+
+
 Lista *limparListaSegundoTurno(Lista *lst){
     if(lst->prox == NULL){
         return NULL;
@@ -235,13 +334,31 @@ Lista *limparListaSegundoTurno(Lista *lst){
             candidato2 = p;
         }
     }
-    // Criar nova lista com os dois candidatos
+
+    // Criar nova lista com cópias profundas dos candidatos
     Lista *novoSegundoTurno = NULL;
-    novoSegundoTurno = insereChapaLista(candidato2->C, novoSegundoTurno);
-    novoSegundoTurno = insereChapaLista(candidato1->C, novoSegundoTurno);
-    
+
+    Chapa *copiaChapa1 = (Chapa*)malloc(sizeof(Chapa));
+    if(copiaChapa1 == NULL) exit(1);
+    *copiaChapa1 = *candidato1->C; // Copia os dados da chapa
+
+    Chapa *copiaChapa2 = (Chapa*)malloc(sizeof(Chapa));
+    if(copiaChapa2 == NULL) exit(1);
+    *copiaChapa2 = *candidato2->C; // Copia os dados da chapa
+
+    copiaChapa1->votosValidos = 0;
+    copiaChapa2->votosValidos = 0;
+    novoSegundoTurno = insereChapaLista(copiaChapa2, novoSegundoTurno);
+    novoSegundoTurno = insereChapaLista(copiaChapa1, novoSegundoTurno);
+
     return novoSegundoTurno;
 }
+
+
+
+
+
+
 
 void gerarBoletim(Lista *lst, FILE *boletimPrimeiroTurno, Votos *v, int qntEleitores){
 
@@ -266,6 +383,11 @@ void gerarBoletim(Lista *lst, FILE *boletimPrimeiroTurno, Votos *v, int qntEleit
     porcentagemVotosValidos, porcentagemVotosNulos, porcentagemVotosBrancos);
 }
 
+
+
+
+
+
 void imprimeCandidatosLista(Lista* lst){
     for(Lista *p = lst; p != NULL; p = p->prox){
         p->C->nomePrefeito[strcspn(p->C->nomePrefeito, "\n")] = '\0';
@@ -273,6 +395,34 @@ void imprimeCandidatosLista(Lista* lst){
         printf("Prefeito %s %d\nVice %s\n\n", p->C->nomePrefeito, p->C->numero, p->C->nomeVice);
     }
 }
+
+
+
+
+
+void candidatoMaisVelho(Chapa *cand1, Chapa *cand2, FILE *fp_boletim){
+    Chapa *maisVelho = cand1;
+
+    if (cand2->DataDeNascimento[0] < cand1->DataDeNascimento[0]){
+        maisVelho = cand2;
+    } else if (cand2->DataDeNascimento[0] == cand1->DataDeNascimento[0]){
+        if (cand2->DataDeNascimento[1] < cand1->DataDeNascimento[1]){
+            maisVelho = cand2;
+        } else if (cand2->DataDeNascimento[1] == cand1->DataDeNascimento[1]){
+            if (cand2->DataDeNascimento[2] < cand1->DataDeNascimento[2]){
+                maisVelho = cand2;
+            }
+        }
+    }
+
+    fprintf(fp_boletim, "Candidato a prefeito %s com vice %s ganhou a eleicao com %d votos por ser mais velho\n",
+            maisVelho->nomePrefeito, maisVelho->nomeVice, maisVelho->votosValidos);
+}
+
+
+
+
+
 
 void liberarLista(Lista *lst){
     Lista *p = lst, *aux = NULL;
@@ -283,30 +433,3 @@ void liberarLista(Lista *lst){
         p = aux;
     }
 }
-
-
-// Verificar segundo turno
-/*    if(v->votosValidos > 0 && qntEleitores > 10){
-        Lista *candidatoGanho = NULL;
-        for (Lista *p = lst; p != NULL; p = p->prox){
-            if (p->C->votosValidos > v->votosValidos / 2) {
-                candidatoGanho = p;
-                break;
-            }
-        }
-        if(candidatoGanho){
-            fprintf(boletimPrimeiroTurno, "\nSEM SEGUNDO TURNO\n");
-            fprintf(boletimPrimeiroTurno, "Prefeito %s com Vice %s Eleito a prefeito da cidade!!\n\n", candidatoGanho->C->nomePrefeito, candidatoGanho->C->nomeVice);
-            return 0;
-        }else{
-            fprintf(boletimPrimeiroTurno, "\nSEGUNDO TURNO NECESSARIO.\n");
-            Lista *aux = lst->prox;
-            for(Lista *p = lst; p!=NULL; p=p->prox){
-                if(aux->C->votosValidos < p->C->votosValidos){
-                    aux = p;
-                }
-            }
-            return 1;
-        }
-    }
-    */
