@@ -34,7 +34,13 @@ void simulaUrnaVotacao(){
     int qntChapas, qntEleitores;
     printf("------------- URNA -------------\n\n\n");
     printf("| Numero de chapas a ser cadastradas:  ");
-    scanf("%d", &qntChapas); printf("|");
+    for(int i=0; i<1; i++){
+        scanf("%d", &qntChapas);
+        if(qntChapas > 99 || qntChapas < 1){
+            printf("O maximo de chapas eh 99, digite um numero entre 1 a 99");
+            i=0;
+        }
+    }
     printf("\n| Numero de eleitores da cidade: ");
     scanf("%d", &qntEleitores); printf("|");
     system("pause");
@@ -194,11 +200,11 @@ void votarEmChapa(Lista *lst, int qntEleitores){
                 }
             }
             if(candidato1->C->votosValidos > candidato2->C->votosValidos){
-                fprintf(fp_boletimSegundoTurno, "Candidato a prefeito %s com vice %s ganhou a eleicao com %d votos\n", 
+                fprintf(fp_boletimPrimeiroTurno, "Candidato a prefeito %s com vice %s ganhou a eleicao com %d votos\n", 
                 candidato1->C->nomePrefeito, candidato1->C->nomeVice, candidato1->C->votosValidos);
                 }
             else if(candidato1->C->votosValidos < candidato2->C->votosValidos){
-                fprintf(fp_boletimSegundoTurno, "Candidato a prefeito %s com vice %s ganhou a eleicao com %d votos\n", 
+                fprintf(fp_boletimPrimeiroTurno, "Candidato a prefeito %s com vice %s ganhou a eleicao com %d votos\n", 
                 candidato2->C->nomePrefeito, candidato2->C->nomeVice, candidato2->C->votosValidos);
                 } 
             else if(candidato1->C->votosValidos == candidato2->C->votosValidos){
@@ -206,15 +212,19 @@ void votarEmChapa(Lista *lst, int qntEleitores){
                 }
             }
 
-            int turno = 2;
-            Lista *candidato1 = NULL;
-            for (Lista *p = lst; p != NULL; p = p->prox){
-                if (p->C->votosValidos > v->votosValidos / 2){
-                    candidato1 = p;
-                    turno = 1;
-                    break;
-                }
+        int turno = 2;
+        Lista *candidato1 = NULL;
+        for (Lista *p = lst; p != NULL; p = p->prox){
+            if (p->C->votosValidos > v->votosValidos / 2){
+                candidato1 = p;
+                turno = 1;
+                break;
             }
+        }
+        if(turno == 1){
+            fprintf(fp_boletimPrimeiroTurno, "Candidato a prefeito %s com vice %s ganhou a eleicao com %d votos\n", 
+                candidato1->C->nomePrefeito, candidato1->C->nomeVice, candidato1->C->votosValidos);
+        }
 
         Lista *listaSegundoTurno = NULL;
         if(qntEleitores>10){

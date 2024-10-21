@@ -1,20 +1,20 @@
-Prefeito: maria  69
-Vice: romario
-VOTOS: 4
-PORCENTAGEM DE VOTOS: 50.00
+Prefeito: Juliana  24
+Vice: Mario
+VOTOS: 5
+PORCENTAGEM DE VOTOS: 62.00
 
-Prefeito: du  24
-Vice: romario
-VOTOS: 4
-PORCENTAGEM DE VOTOS: 50.00
+Prefeito: Eduardo  55
+Vice: ronaldo
+VOTOS: 3
+PORCENTAGEM DE VOTOS: 37.00
 
-VOTOS NULOS: 2
-VOTOS BRANCOS: 1
+VOTOS NULOS: 1
+VOTOS BRANCOS: 2
 VOTOS VALIDOS: 8
 VOTOS TOTAIS: 11
 
 PORCENTAGEM VOTOS VALIDOS: 72.00
-PORCENTAGEM VOTOS NULOS: 18.00
-PORCENTAGEM VOTOS BRANCOS: 9.00
+PORCENTAGEM VOTOS NULOS: 9.00
+PORCENTAGEM VOTOS BRANCOS: 18.00
 
-Candidato a prefeito maria com vice romario ganhou a eleicao com 4 votos por ser mais velho
+Candidato a prefeito Juliana com vice Mario ganhou a eleicao com 5 votos
